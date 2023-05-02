@@ -1,0 +1,151 @@
+create table products
+(
+    product_id  int auto_increment
+        primary key,
+    name        varchar(24) charset utf8mb3                            not null,
+    brand       varchar(100) charset utf8mb3  default 'No brand'       not null,
+    description varchar(1024) charset utf8mb3 default 'No description' not null,
+    cost        decimal(10, 2)                                         not null,
+    amount      int                           default 1                not null,
+    category    varchar(50) charset utf8mb3   default 'No category'    not null,
+    check (`cost` >= 0),
+    check (`amount` >= 0)
+);
+
+create index amount
+    on products (amount);
+
+create index brand
+    on products (brand);
+
+create index category
+    on products (category);
+
+create index cost
+    on products (cost);
+
+create index description
+    on products (description);
+
+create table users
+(
+    user_id  int auto_increment
+        primary key,
+    name     varchar(1024) charset utf8mb3 not null,
+    email    varchar(1024) charset utf8mb3 not null,
+    password varchar(1024) charset utf8mb3 not null,
+    money    decimal(10, 2)                null,
+    check (`money` >= 0)
+);
+
+create table orders
+(
+    order_id       int auto_increment
+        primary key,
+    user_id        int                                                                   not null,
+    product_id     int                                                                   not null,
+    product_cost   decimal(10, 2)                                                        not null,
+    product_amount int                                                                   not null,
+    order_date     datetime                                  default current_timestamp() not null,
+    order_state    enum ('Reserved', 'Shipping', 'Received') default 'Reserved'          not null,
+    constraint product_id
+        unique (product_id, product_amount),
+    constraint orders_ibfk_1
+        foreign key (user_id) references users (user_id),
+    constraint orders_ibfk_2
+        foreign key (product_id) references products (product_id),
+    check (`product_cost` >= 0),
+    check (`product_amount` > 0)
+);
+
+create index order_date
+    on orders (order_date);
+
+create index order_state
+    on orders (order_state);
+
+create index user_id
+    on orders (user_id, product_id);
+
+create definer = np@localhost trigger delete_orders_update_money
+    before delete
+    on orders
+    for each row
+    UPDATE users u SET u.money = u.money + OLD.product_amount * OLD.product_cost WHERE u.user_id = OLD.user_id;
+
+create definer = np@localhost trigger delete_orders_update_products
+    before delete
+    on orders
+    for each row
+    UPDATE products p SET p.amount = p.amount + OLD.product_amount WHERE p.product_id = OLD.product_id;
+
+create definer = np@localhost trigger insert_orders_update_money
+    before insert
+    on orders
+    for each row
+    UPDATE users u SET u.money = u.money - NEW.product_amount * NEW.product_cost WHERE u.user_id = NEW.user_id;
+
+create definer = np@localhost trigger insert_orders_update_products
+    before insert
+    on orders
+    for each row
+    UPDATE products p SET p.amount = p.amount - NEW.product_amount WHERE p.product_id = NEW.product_id;
+
+create definer = np@localhost trigger update_orders_update_money
+    before update
+    on orders
+    for each row
+BEGIN
+    UPDATE users u SET u.money = u.money + OLD.product_amount * OLD.product_cost WHERE u.user_id = OLD.user_id;
+    UPDATE users u SET u.money = u.money - NEW.product_amount * NEW.product_cost WHERE u.user_id = NEW.user_id;
+end;
+
+create definer = np@localhost trigger update_orders_update_products
+    before update
+    on orders
+    for each row
+BEGIN
+    UPDATE products p SET p.amount = p.amount + OLD.product_amount WHERE p.product_id = OLD.product_id;
+    UPDATE products p SET p.amount = p.amount - NEW.product_amount WHERE p.product_id = NEW.product_id;
+END;
+
+create table shopping_carts
+(
+    item_id        int auto_increment
+        primary key,
+    user_id        int not null,
+    product_id     int not null,
+    product_amount int not null,
+    constraint product_id
+        unique (product_id, user_id),
+    constraint shopping_carts_ibfk_1
+        foreign key (user_id) references users (user_id),
+    constraint shopping_carts_ibfk_2
+        foreign key (product_id) references products (product_id),
+    check (`product_amount` > 0)
+);
+
+create index user_id
+    on shopping_carts (user_id, product_id);
+
+create index email
+    on users (email);
+
+create index money
+    on users (money);
+
+create index name
+    on users (name);
+
+create table users_permissions
+(
+    user_id               int                  not null
+        primary key,
+    manage_users          tinyint(1) default 0 not null,
+    manage_products       tinyint(1) default 0 not null,
+    manage_shopping_carts tinyint(1) default 0 not null,
+    manage_orders         tinyint(1) default 0 not null,
+    constraint users_permissions_ibfk_1
+        foreign key (user_id) references users (user_id)
+);
+
