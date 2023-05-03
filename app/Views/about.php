@@ -2,7 +2,10 @@
 
 <h1>Project made with CodeIgniter 4 by Nerijus Pocevičius</h1>
 
-<h2>Sql Code</h2>
+<h2>Sql</h2>
+
+<img src="db.png" alt="Database image">
+
 <pre>
 create table products
 (
