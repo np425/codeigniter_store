@@ -29,7 +29,28 @@ $routes->set404Override();
 
 // We get a performance increase by specifying the default
 // route since we don't have to scan directories.
-$routes->get('/', 'Home::index');
+$routes->get('/', 'Users::index');
+
+$routes->get('orders/', 'Orders::index');
+$routes->match(['get', 'post'], 'orders/add/', 'Orders::add');
+$routes->match(['get', 'post'], 'orders/edit/(:num)', 'Orders::edit/$1');
+$routes->get('orders/delete/(:num)', 'Orders::delete/$1');
+
+$routes->get('products/', 'Products::index');
+$routes->match(['get', 'post'], 'products/add/', 'Products::add');
+$routes->match(['get', 'post'], 'products/edit/(:num)', 'Products::edit/$1');
+$routes->get('products/delete/(:num)', 'Products::delete/$1');
+
+$routes->get('carts/', 'Carts::index');
+$routes->match(['get', 'post'], 'carts/add/', 'Carts::add');
+$routes->match(['get', 'post'], 'carts/edit/(:num)', 'Carts::edit/$1');
+$routes->get('carts/delete/(:num)', 'Carts::delete/$1');
+
+$routes->get('users/', 'Users::index');
+$routes->match(['get', 'post'], 'users/add/', 'Users::add');
+$routes->match(['get', 'post'], 'users/edit/(:num)', 'Users::edit/$1');
+$routes->get('users/delete/(:num)', 'Users::delete/$1');
+
 
 /*
  * --------------------------------------------------------------------
