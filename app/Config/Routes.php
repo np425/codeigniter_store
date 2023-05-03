@@ -29,7 +29,7 @@ $routes->set404Override();
 
 // We get a performance increase by specifying the default
 // route since we don't have to scan directories.
-$routes->get('/', 'Users::index');
+$routes->get('/', 'Home::Index');
 
 $routes->get('orders/', 'Orders::index');
 $routes->match(['get', 'post'], 'orders/add/', 'Orders::add');
